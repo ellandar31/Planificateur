@@ -1,0 +1,746 @@
+:root {
+  --bg: #f4f6f5;
+  --panel: #ffffff;
+  --ink: #1f2528;
+  --muted: #667075;
+  --line: #dce3e0;
+  --soft: #edf3f1;
+  --accent: #16735f;
+  --accent-dark: #0e5042;
+  --gold: #c9902c;
+  --blue: #2f67b1;
+  --danger: #b83b35;
+  --ok: #16735f;
+  --warn: #c9902c;
+  --bad: #b83b35;
+  --shadow: 0 12px 38px rgba(31, 37, 40, 0.08);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 14px;
+  color: #fff;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--accent-dark);
+}
+
+button.ghost {
+  color: var(--accent);
+  background: #e5efec;
+}
+
+button.soft {
+  color: var(--ink);
+  background: var(--soft);
+}
+
+button.danger {
+  color: #fff;
+  background: var(--danger);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px 10px;
+  color: var(--ink);
+  background: #fff;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.hidden,
+.view {
+  display: none !important;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.auth-view {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-card {
+  display: grid;
+  gap: 14px;
+  width: min(420px, 100%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.auth-actions,
+.topbar-actions,
+.week-controls,
+.form-actions,
+.inline-form,
+.copy-tools,
+.export-actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.auth-actions button {
+  flex: 1;
+}
+
+.workspace {
+  min-height: 100vh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--accent);
+  font-weight: 900;
+}
+
+.brand h1 {
+  font-size: 1.12rem;
+}
+
+.brand p,
+.page-head p {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.restaurant-switcher {
+  min-width: 260px;
+}
+
+.restaurant-picker {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+}
+
+.add-restaurant-button {
+  color: #fff;
+  background: var(--accent);
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+  padding: 10px 18px 0;
+  background: var(--panel);
+  overflow-x: auto;
+}
+
+.tab {
+  min-width: 108px;
+  color: var(--muted);
+  background: transparent;
+  border-radius: 7px 7px 0 0;
+}
+
+.tab.active {
+  color: #fff;
+  background: var(--accent);
+}
+
+.active-view {
+  display: grid !important;
+  gap: 16px;
+  padding: 18px;
+}
+
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-head h2 {
+  margin-top: 3px;
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+}
+
+.week-controls {
+  display: grid;
+  grid-template-columns: 42px minmax(160px, 190px) 42px;
+}
+
+.week-controls button {
+  padding: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+  padding: 6px 0 12px;
+  background: transparent;
+}
+
+.copy-tools {
+  flex-wrap: wrap;
+}
+
+.copy-tools label {
+  min-width: 150px;
+}
+
+.export-actions {
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.panel,
+.employee-card,
+.restaurant-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.planning-board {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  box-shadow: none;
+}
+
+.planning-grid {
+  display: grid;
+  grid-template-columns: 160px repeat(7, minmax(118px, 1fr));
+  min-width: 986px;
+}
+
+.grid-head,
+.employee-cell,
+.day-work-cell {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.grid-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 8px 7px;
+  text-align: center;
+  background: #f8faf9;
+}
+
+.grid-head strong {
+  font-size: 0.8rem;
+}
+
+.grid-head small {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.grid-head.employee-col,
+.employee-cell {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.grid-head.employee-col {
+  z-index: 4;
+}
+
+.employee-cell {
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  padding: 9px;
+  color: #fff;
+  background: #0f4a63;
+}
+
+.employee-cell strong {
+  overflow-wrap: anywhere;
+}
+
+.employee-cell small {
+  color: var(--muted);
+}
+
+.employee-cell small {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.employee-total {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  margin-top: 4px;
+}
+
+.employee-total small {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.day-work-cell {
+  display: grid;
+  min-height: 82px;
+  place-items: center;
+  padding: 0;
+  background: #fff;
+}
+
+.day-work-cell.absent {
+  background: #fbf4e8;
+}
+
+.cell-display {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+  min-height: 82px;
+  border-radius: 0;
+  padding: 8px 6px;
+  color: var(--ink);
+  text-align: center;
+  background: transparent;
+  font-weight: 800;
+  line-height: 1.28;
+}
+
+.cell-display:hover {
+  color: var(--ink);
+  background: #edf6f3;
+}
+
+.cell-display.status-display {
+  font-size: 0.98rem;
+}
+
+.empty-cell {
+  color: #b6c0bd;
+  font-size: 1.3rem;
+}
+
+.hours-badge {
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.hours-badge.ok {
+  background: var(--ok);
+}
+
+.hours-badge.low {
+  background: var(--warn);
+}
+
+.hours-badge.high {
+  background: var(--bad);
+}
+
+.panel {
+  padding: 14px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(130px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.compact-form {
+  grid-template-columns: minmax(240px, 1fr) auto;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+}
+
+.checkbox-label input {
+  width: auto;
+  min-height: 0;
+}
+
+.form-actions {
+  justify-content: end;
+}
+
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.employee-card,
+.restaurant-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.card-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: var(--soft);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.chip button {
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.restaurant-management {
+  margin-top: 14px;
+}
+
+.stack {
+  display: grid;
+  gap: 12px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(31, 37, 40, 0.44);
+}
+
+.cell-modal,
+.restaurant-modal {
+  display: grid;
+  gap: 16px;
+  width: min(640px, 100%);
+  border-radius: 10px;
+  padding: 18px;
+  background: var(--panel);
+  box-shadow: 0 24px 80px rgba(31, 37, 40, 0.28);
+}
+
+.restaurant-modal {
+  width: min(460px, 100%);
+}
+
+.modal-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-header p {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.modal-header h2 {
+  margin-top: 3px;
+  font-size: 1.25rem;
+}
+
+.icon-button {
+  display: grid;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  place-items: center;
+  padding: 0;
+  color: var(--ink);
+  background: var(--soft);
+}
+
+.cell-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.cell-modal-grid label:first-child {
+  grid-column: 1 / -1;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-actions .danger {
+  margin-right: auto;
+}
+
+@media print {
+  .topbar,
+  .tabs,
+  .toolbar {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .active-view {
+    padding: 0;
+  }
+
+  .planning-board {
+    overflow: visible;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .topbar,
+  .page-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbar-actions,
+  .toolbar,
+  .copy-tools,
+  .export-actions {
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .restaurant-switcher {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .restaurant-picker {
+    width: 100%;
+  }
+
+  .form-grid,
+  .compact-form,
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  button,
+  input,
+  select {
+    min-height: 44px;
+  }
+
+  .auth-view,
+  .active-view {
+    padding: 12px;
+  }
+
+  .topbar {
+    padding: 12px;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand h1 {
+    font-size: 1rem;
+  }
+
+  .topbar-actions,
+  .auth-actions,
+  .form-actions,
+  .inline-form,
+  .copy-tools,
+  .export-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .restaurant-picker {
+    display: grid;
+    grid-template-columns: 1fr 44px;
+  }
+
+  .tabs {
+    padding: 8px 12px 0;
+  }
+
+  .tab {
+    min-width: 118px;
+  }
+
+  .week-controls {
+    grid-template-columns: 44px 1fr 44px;
+  }
+
+  .planning-grid {
+    grid-template-columns: 140px repeat(7, minmax(112px, 1fr));
+    min-width: 924px;
+  }
+
+  .grid-head,
+  .employee-cell,
+  .day-work-cell {
+    padding: 8px;
+  }
+
+  .modal-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .cell-modal,
+  .restaurant-modal {
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .cell-modal-grid,
+  .modal-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-actions {
+    display: grid;
+  }
+
+  .modal-actions .danger {
+    margin-right: 0;
+  }
+}

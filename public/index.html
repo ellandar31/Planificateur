@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Plannificateur Restaurant</title>
+    <link rel="stylesheet" href="./styles.css?v=20260629-weekly-1">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="auth-view" id="authView">
+        <div class="auth-card">
+          <div class="brand">
+            <span class="brand-mark">P</span>
+            <div>
+              <h1>Plannificateur</h1>
+              <p>Planning hebdomadaire restaurant</p>
+            </div>
+          </div>
+
+          <label>
+            Email
+            <input id="emailInput" type="email" autocomplete="email" placeholder="proprietaire@restaurant.fr">
+          </label>
+          <label>
+            Mot de passe
+            <input id="passwordInput" type="password" autocomplete="current-password" placeholder="8 caracteres minimum">
+          </label>
+          <div class="auth-actions">
+            <button id="loginButton" type="button">Connexion</button>
+            <button id="signupButton" type="button" class="ghost">Creer</button>
+          </div>
+          <button id="googleLoginButton" type="button" class="soft">Connexion Google</button>
+        </div>
+      </section>
+
+      <section class="workspace hidden" id="workspaceView">
+        <header class="topbar">
+          <div class="brand compact">
+            <span class="brand-mark">P</span>
+            <div>
+              <h1>Plannificateur</h1>
+              <p id="accountLabel">Planning equipe</p>
+            </div>
+          </div>
+
+          <div class="topbar-actions">
+            <div class="restaurant-picker">
+              <label class="restaurant-switcher">
+                Restaurant
+                <select id="restaurantSelect"></select>
+              </label>
+              <button id="addRestaurantButton" type="button" class="icon-button add-restaurant-button" aria-label="Ajouter un restaurant" title="Ajouter un restaurant">+</button>
+            </div>
+            <button id="logoutButton" type="button" class="ghost">Deconnexion</button>
+          </div>
+        </header>
+
+        <nav class="tabs" aria-label="Navigation principale">
+          <button class="tab active" type="button" data-view="planningView">Planning</button>
+          <button class="tab" type="button" data-view="teamView">Equipe</button>
+          <button class="tab" type="button" data-view="settingsView">Parametres</button>
+        </nav>
+
+        <section class="view active-view" id="planningView">
+          <div class="page-head">
+            <div>
+              <p id="selectedRestaurantLabel">Restaurant</p>
+              <h2 id="weekTitle">Planning semaine</h2>
+            </div>
+            <div class="week-controls">
+              <button id="previousWeekButton" type="button" aria-label="Semaine precedente">&lt;</button>
+              <input id="weekInput" type="week">
+              <button id="nextWeekButton" type="button" aria-label="Semaine suivante">&gt;</button>
+            </div>
+          </div>
+
+          <section class="toolbar">
+            <div class="copy-tools">
+              <label>
+                Copier la semaine vers
+                <input id="copyWeekTarget" type="week">
+              </label>
+              <button id="copyWeekButton" type="button" class="soft">Copier semaine</button>
+            </div>
+            <div class="export-actions">
+              <button id="exportWeekPdfButton" type="button">PDF semaine</button>
+              <button id="exportWeekExcelButton" type="button" class="soft">Excel semaine</button>
+              <button id="exportMonthExcelButton" type="button" class="soft">Excel mois</button>
+            </div>
+          </section>
+
+          <section class="planning-board" id="planningBoard"></section>
+        </section>
+
+        <section class="view" id="teamView">
+          <div class="page-head">
+            <div>
+              <p>Gestion des salaries</p>
+              <h2>Equipe</h2>
+            </div>
+          </div>
+
+          <form class="panel form-grid" id="employeeForm">
+            <input id="employeeIdInput" type="hidden">
+            <label>
+              Prenom
+              <input id="employeeFirstNameInput" type="text" placeholder="Prenom">
+            </label>
+            <label>
+              Nom
+              <input id="employeeLastNameInput" type="text" placeholder="Nom">
+            </label>
+            <label>
+              Poste
+              <input id="employeeRoleInput" type="text" placeholder="Cuisine, Salle, Bar...">
+            </label>
+            <label>
+              Restaurant selectionne
+              <select id="employeeRestaurantInput"></select>
+            </label>
+            <label>
+              Contrat
+              <select id="employeeContractInput"></select>
+            </label>
+            <label class="checkbox-label">
+              <input id="employeeActiveInput" type="checkbox" checked>
+              Actif
+            </label>
+            <div class="form-actions">
+              <button id="cancelEmployeeEditButton" type="button" class="ghost">Annuler</button>
+              <button type="submit">Enregistrer</button>
+            </div>
+          </form>
+
+          <section class="list-grid" id="employeeCards"></section>
+        </section>
+
+        <section class="view" id="settingsView">
+          <div class="page-head">
+            <div>
+              <p>Configuration</p>
+              <h2>Parametres</h2>
+            </div>
+          </div>
+
+          <section class="settings-grid">
+            <form class="panel stack" id="absenceForm">
+              <h3>Types d'absence</h3>
+              <div class="inline-form">
+                <input id="absenceNameInput" type="text" placeholder="Conges, Formation...">
+                <button type="submit">Ajouter</button>
+              </div>
+              <div class="chips" id="absenceChips"></div>
+            </form>
+
+            <form class="panel stack" id="contractForm">
+              <h3>Contrats</h3>
+              <div class="inline-form">
+                <input id="contractHoursInput" type="number" min="1" step="1" placeholder="35">
+                <button type="submit">Ajouter</button>
+              </div>
+              <div class="chips" id="contractChips"></div>
+            </form>
+          </section>
+
+          <section class="panel stack restaurant-management">
+            <h3>Restaurants</h3>
+            <section class="list-grid" id="restaurantCards"></section>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <div class="modal-backdrop hidden" id="restaurantModal" role="dialog" aria-modal="true" aria-labelledby="restaurantModalTitle">
+      <form class="restaurant-modal" id="restaurantForm">
+        <header class="modal-header">
+          <div>
+            <p>Restaurant</p>
+            <h2 id="restaurantModalTitle">Ajouter un restaurant</h2>
+          </div>
+          <button id="closeRestaurantModalButton" type="button" class="icon-button" aria-label="Fermer">X</button>
+        </header>
+
+        <input id="restaurantIdInput" type="hidden">
+        <label>
+          Nom du restaurant
+          <input id="restaurantNameInput" type="text" placeholder="Nom du restaurant">
+        </label>
+
+        <footer class="modal-actions">
+          <button id="cancelRestaurantEditButton" type="button" class="ghost">Annuler</button>
+          <button type="submit">Enregistrer</button>
+        </footer>
+      </form>
+    </div>
+
+    <div class="modal-backdrop hidden" id="cellModal" role="dialog" aria-modal="true" aria-labelledby="cellModalTitle">
+      <section class="cell-modal">
+        <header class="modal-header">
+          <div>
+            <p id="cellModalSubtitle">Planning</p>
+            <h2 id="cellModalTitle">Modifier la cellule</h2>
+          </div>
+          <button id="closeCellModalButton" type="button" class="icon-button" aria-label="Fermer">X</button>
+        </header>
+
+        <div class="cell-modal-grid">
+          <label>
+            Statut
+            <select id="modalStatusInput"></select>
+          </label>
+          <label>
+            Midi debut
+            <input id="modalLunchStartInput" type="time">
+          </label>
+          <label>
+            Midi fin
+            <input id="modalLunchEndInput" type="time">
+          </label>
+          <label>
+            Soir debut
+            <input id="modalDinnerStartInput" type="time">
+          </label>
+          <label>
+            Soir fin
+            <input id="modalDinnerEndInput" type="time">
+          </label>
+        </div>
+
+        <footer class="modal-actions">
+          <button id="clearCellButton" type="button" class="danger">Vider</button>
+          <button id="cancelCellModalButton" type="button" class="ghost">Annuler</button>
+          <button id="saveCellButton" type="button">Enregistrer</button>
+        </footer>
+      </section>
+    </div>
+
+    <script type="module" src="./app.js?v=20260629-weekly-1"></script>
+  </body>
+</html>
