@@ -24,6 +24,7 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
+import "./vendor/exceljs-4.4.0.min.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -878,21 +879,35 @@ async function copyWeek() {
   subscribePlan();
 }
 
-function exportWeekExcel() {
-  const rows = [["Salarie", ...weekdays, "Total"]];
-  activeEmployeesForRestaurant().forEach(employee => {
+async function exportWeekExcel() {
+  const rows = [["Salarié", ...weekdays.map((_, index) => {
+    const date = addDays(visibleWeekStart, index);
+    return `${formatDate(date, { weekday: "long" })}\n${formatDate(date, { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+  })]];
+  const groupRows = [];
+  const roleOf = employee => employee.role?.trim() || "Poste non renseigné";
+  const roleKeyOf = employee => roleOf(employee).toLocaleLowerCase("fr");
+  const sortedEmployees = [...activeEmployeesForRestaurant()].sort((a, b) =>
+    roleKeyOf(a).localeCompare(roleKeyOf(b), "fr") || employeeName(a).localeCompare(employeeName(b), "fr")
+  );
+  let previousRole = null;
+  sortedEmployees.forEach(employee => {
+    const role = roleOf(employee);
+    const roleKey = roleKeyOf(employee);
+    if (roleKey !== previousRole) {
+      rows.push([role]);
+      groupRows.push(rows.length);
+      previousRole = roleKey;
+    }
     const row = [employeeName(employee)];
-    let total = 0;
     weekdays.forEach((_, index) => {
       const date = isoDate(addDays(visibleWeekStart, index));
       const day = planEntries[employee.id]?.days?.[date] || {};
-      total += dayHours(day);
       row.push(formatDayForExport(day));
     });
-    row.push(formatHours(total));
     rows.push(row);
   });
-  downloadCsv(`planning-semaine-${weekId()}.csv`, rows);
+  await downloadExcel(`planning-semaine-${weekId()}.xlsx`, rows, "Semaine", groupRows);
 }
 
 async function exportMonthExcel() {
@@ -923,7 +938,7 @@ async function exportMonthExcel() {
   }
 
   rows.push(["TOTAL", "", ...activeEmployees.map(employee => formatHours(totalsByEmployee[employee.id]))]);
-  downloadCsv(`planning-mois-${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}.csv`, rows);
+  await downloadExcel(`planning-mois-${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}.xlsx`, rows, "Mois");
 }
 
 async function loadMonthEntries(monthStart, monthEnd) {
@@ -959,15 +974,39 @@ function formatDayForExport(day) {
   return parts.join("\n");
 }
 
-function downloadCsv(filename, rows) {
-  const content = rows.map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(";")).join("\n");
-  const blob = new Blob([`\ufeff${content}`], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
+async function downloadExcel(filename, rows, sheetName, groupRows = []) {
+  const workbook = new globalThis.ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(sheetName);
+  const groups = new Set(groupRows);
+  worksheet.columns = rows[0].map((_, index) => ({
+    width: rows.reduce((width, row, rowIndex) => groups.has(rowIndex + 1) ? width :
+      Math.max(width, ...String(row[index] ?? "").split("\n").map(line => line.length + 3)), 15)
+  }));
+  rows.forEach((values, index) => {
+    const row = worksheet.addRow(values);
+    row.height = Math.max(24, ...values.map(value => String(value).split("\n").length * 16 + 8));
+    row.eachCell(cell => {
+      cell.font = { name: "Calibri", size: 11 };
+      cell.alignment = { vertical: "middle", wrapText: true };
+    });
+    if (index === 0 || groups.has(row.number)) {
+      if (groups.has(row.number)) worksheet.mergeCells(row.number, 1, row.number, rows[0].length);
+      row.eachCell(cell => {
+        cell.font = { name: "Calibri", size: 11, bold: true, color: { argb: index === 0 ? "FFFFFFFF" : "FF203864" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: index === 0 ? "FF203864" : "FFDCE6F1" } };
+      });
+    }
+  });
+  worksheet.views = [{ state: "frozen", xSplit: 1, ySplit: 1 }];
+  const buffer = await workbook.xlsx.writeBuffer();
+  const url = URL.createObjectURL(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
+  document.body.append(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function showView(viewId) {
@@ -1007,7 +1046,7 @@ els.weekInput.addEventListener("change", event => {
 });
 els.copyWeek.addEventListener("click", () => copyWeek().catch(error => alert(error.message)));
 els.exportWeekPdf.addEventListener("click", () => window.print());
-els.exportWeekExcel.addEventListener("click", exportWeekExcel);
+els.exportWeekExcel.addEventListener("click", () => exportWeekExcel().catch(error => alert(error.message)));
 els.exportMonthExcel.addEventListener("click", () => exportMonthExcel().catch(error => alert(error.message)));
 els.employeeForm.addEventListener("submit", event => saveEmployee(event).catch(error => alert(error.message)));
 els.cancelEmployeeEdit.addEventListener("click", resetEmployeeForm);
