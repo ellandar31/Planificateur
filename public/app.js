@@ -879,7 +879,7 @@ async function copyWeek() {
   subscribePlan();
 }
 
-async function exportWeekExcel() {
+function weekExportData() {
   const rows = [["Salarié", ...weekdays.map((_, index) => {
     const date = addDays(visibleWeekStart, index);
     return `${formatDate(date, { weekday: "long" })}\n${formatDate(date, { day: "2-digit", month: "2-digit", year: "numeric" })}`;
@@ -907,7 +907,47 @@ async function exportWeekExcel() {
     });
     rows.push(row);
   });
+  return { rows, groupRows };
+}
+
+async function exportWeekExcel() {
+  const { rows, groupRows } = weekExportData();
   await downloadExcel(`planning-semaine-${weekId()}.xlsx`, rows, "Semaine", groupRows);
+}
+
+function renderWeekPrint() {
+  document.querySelector("#weekPrint")?.remove();
+  const section = document.createElement("section");
+  section.id = "weekPrint";
+  const title = document.createElement("h1");
+  title.textContent = selectedRestaurant()?.name || "Planning";
+  const subtitle = document.createElement("p");
+  subtitle.textContent = `Semaine du ${formatDate(visibleWeekStart, { day: "2-digit", month: "2-digit", year: "numeric" })} au ${formatDate(addDays(visibleWeekStart, 6), { day: "2-digit", month: "2-digit", year: "numeric" })}`;
+  section.append(title, subtitle);
+  const { rows, groupRows } = weekExportData();
+  const groups = new Set(groupRows);
+  const table = document.createElement("table");
+  const head = table.createTHead();
+  let body = table.createTBody();
+  rows.forEach((values, index) => {
+    const isGroup = groups.has(index + 1);
+    if (isGroup && body.rows.length) body = table.createTBody();
+    const row = (index === 0 ? head : body).insertRow();
+    if (isGroup) row.className = "print-role";
+    values.forEach((value, column) => {
+      const cell = document.createElement(index === 0 || isGroup || column === 0 ? "th" : "td");
+      cell.textContent = value;
+      if (isGroup) {
+        cell.colSpan = rows[0].length;
+        cell.scope = "rowgroup";
+      } else if (cell.tagName === "TH") {
+        cell.scope = index === 0 ? "col" : "row";
+      }
+      row.append(cell);
+    });
+  });
+  section.append(table);
+  document.body.append(section);
 }
 
 async function exportMonthExcel() {
@@ -916,6 +956,7 @@ async function exportMonthExcel() {
   const monthEntries = await loadMonthEntries(monthStart, monthEnd);
   const activeEmployees = activeEmployeesForRestaurant();
   const totalsByEmployee = Object.fromEntries(activeEmployees.map(employee => [employee.id, 0]));
+  const statsByEmployee = Object.fromEntries(activeEmployees.map(employee => [employee.id, { leave: 0, rest: 0, sick: 0, absence: 0, meals: 0 }]));
   const rows = [["Date", "Jour", ...activeEmployees.map(employeeName)]];
   let date = new Date(monthStart);
 
@@ -930,15 +971,58 @@ async function exportMonthExcel() {
       const day = monthEntries[employee.id]?.days?.[iso] || {};
       const hours = dayHours(day);
       totalsByEmployee[employee.id] += hours;
-      row.push(formatDayForExport(day));
+      const stats = statsByEmployee[employee.id];
+      const category = absenceCategory(day.status);
+      if (category) stats[category] += 1;
+      const meals = dayMeals(day);
+      stats.meals += meals;
+      const services = formatDayForExport(day);
+      row.push(services ? `${services}\nRepas : ${meals}` : "");
     });
 
     rows.push(row);
     date = addDays(date, 1);
   }
 
-  rows.push(["TOTAL", "", ...activeEmployees.map(employee => formatHours(totalsByEmployee[employee.id]))]);
-  await downloadExcel(`planning-mois-${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}.xlsx`, rows, "Mois");
+  rows.push(["TOTAL", "", ...activeEmployees.map(employee =>
+    `${formatHours(totalsByEmployee[employee.id])}\nRepas : ${statsByEmployee[employee.id].meals}`
+  )]);
+  const summary = [["Nom", "Total heures\ntravaillées", "Contrat\nheures hebdomadaires", `Heures prévues au contrat\nMois de ${monthEnd.getDate()} jours`, "Nb jours\nde congé", "Nb jours\nde repos", "Nb jours\nde maladie", "Nb jours\nd'absence", "Nb repas"],
+    ...activeEmployees.map(employee => {
+      const stats = statsByEmployee[employee.id];
+      return [employeeName(employee), Math.round(totalsByEmployee[employee.id] * 100) / 100,
+        contractHours(employee), Math.round(contractHours(employee) * monthEnd.getDate() / 7 * 100) / 100,
+        stats.leave, stats.rest, stats.sick, stats.absence, stats.meals];
+    })];
+  await downloadExcel(`planning-mois-${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, "0")}.xlsx`, rows, "Mois", [], [
+    { sheetName: "Synthèse", rows: summary, hourColumns: [2, 3, 4] }
+  ]);
+}
+
+function absenceCategory(status) {
+  const value = (status || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLocaleLowerCase("fr");
+  if (!value) return null;
+  if (/\bmaladie\b/.test(value)) return "sick";
+  if (/\bconges?\b/.test(value)) return "leave";
+  if (/\brepos\b/.test(value)) return "rest";
+  return "absence";
+}
+
+function dayMeals(day) {
+  if (!day || day.status) return 0;
+  const covers = (start, end, from, to) => {
+    if (!start || !end) return false;
+    const toMinutes = value => {
+      const [hours, minutes] = value.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+    const startMinutes = toMinutes(start);
+    let endMinutes = toMinutes(end);
+    if (endMinutes < startMinutes) endMinutes += 24 * 60;
+    return startMinutes < from && endMinutes > to;
+  };
+  return Number(covers(day.lunchStart, day.lunchEnd, 12 * 60, 14 * 60)) +
+    Number(covers(day.dinnerStart, day.dinnerEnd, 19 * 60 + 30, 21 * 60));
 }
 
 async function loadMonthEntries(monthStart, monthEnd) {
@@ -974,8 +1058,27 @@ function formatDayForExport(day) {
   return parts.join("\n");
 }
 
-async function downloadExcel(filename, rows, sheetName, groupRows = []) {
+async function downloadExcel(filename, rows, sheetName, groupRows = [], extraSheets = []) {
   const workbook = new globalThis.ExcelJS.Workbook();
+  addExcelSheet(workbook, rows, sheetName, groupRows);
+  extraSheets.forEach(sheet => {
+    const worksheet = addExcelSheet(workbook, sheet.rows, sheet.sheetName);
+    (sheet.hourColumns || []).forEach(column => {
+      worksheet.getColumn(column).numFmt = '0.00" h"';
+    });
+  });
+  const buffer = await workbook.xlsx.writeBuffer();
+  const url = URL.createObjectURL(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function addExcelSheet(workbook, rows, sheetName, groupRows = []) {
   const worksheet = workbook.addWorksheet(sheetName);
   const groups = new Set(groupRows);
   worksheet.columns = rows[0].map((_, index) => ({
@@ -998,15 +1101,7 @@ async function downloadExcel(filename, rows, sheetName, groupRows = []) {
     }
   });
   worksheet.views = [{ state: "frozen", xSplit: 1, ySplit: 1 }];
-  const buffer = await workbook.xlsx.writeBuffer();
-  const url = URL.createObjectURL(new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return worksheet;
 }
 
 function showView(viewId) {
@@ -1046,6 +1141,8 @@ els.weekInput.addEventListener("change", event => {
 });
 els.copyWeek.addEventListener("click", () => copyWeek().catch(error => alert(error.message)));
 els.exportWeekPdf.addEventListener("click", () => window.print());
+window.addEventListener("beforeprint", renderWeekPrint);
+window.addEventListener("afterprint", () => document.querySelector("#weekPrint")?.remove());
 els.exportWeekExcel.addEventListener("click", () => exportWeekExcel().catch(error => alert(error.message)));
 els.exportMonthExcel.addEventListener("click", () => exportMonthExcel().catch(error => alert(error.message)));
 els.employeeForm.addEventListener("submit", event => saveEmployee(event).catch(error => alert(error.message)));

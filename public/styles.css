@@ -605,7 +605,46 @@ p {
   margin-right: auto;
 }
 
+#weekPrint {
+  display: none;
+}
+
+@page {
+  size: A4 landscape;
+  margin: 10mm;
+}
+
 @media print {
+  body > :not(#weekPrint) {
+    display: none !important;
+  }
+
+  #weekPrint {
+    display: block;
+    color: #172b4d;
+    font: 10pt Calibri, Arial, sans-serif;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  #weekPrint h1 { margin: 0 0 4mm; font-size: 18pt; }
+  #weekPrint p { margin: 0 0 5mm; }
+  #weekPrint table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  #weekPrint thead { display: table-header-group; }
+  #weekPrint th, #weekPrint td {
+    border: 0.25mm solid #cbd5e1;
+    padding: 2.5mm 1.5mm;
+    text-align: left;
+    vertical-align: middle;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+  }
+  #weekPrint thead th { background: #203864; color: white; }
+  #weekPrint .print-role th { background: #dce6f1; color: #203864; }
+  #weekPrint tr { break-inside: avoid; }
+  #weekPrint .print-role { break-after: avoid; }
+
   .topbar,
   .tabs,
   .toolbar {
