@@ -25,6 +25,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 import "./vendor/exceljs-4.4.0.min.js";
+import { createWeekPdf } from "./weekly-pdf.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -950,6 +951,19 @@ function renderWeekPrint() {
   document.body.append(section);
 }
 
+function exportWeekPdf() {
+  try {
+    const pdf = createWeekPdf({
+      restaurant: selectedRestaurant()?.name || "Planning",
+      period: `Semaine du ${formatDate(visibleWeekStart, { day: "2-digit", month: "2-digit", year: "numeric" })} au ${formatDate(addDays(visibleWeekStart, 6), { day: "2-digit", month: "2-digit", year: "numeric" })}`,
+      ...weekExportData()
+    });
+    pdf.save(`planning-semaine-${weekId()}.pdf`);
+  } catch (error) {
+    alert(`Impossible de générer le PDF : ${error.message}`);
+  }
+}
+
 async function exportMonthExcel() {
   const monthStart = new Date(visibleWeekStart.getFullYear(), visibleWeekStart.getMonth(), 1);
   const monthEnd = new Date(visibleWeekStart.getFullYear(), visibleWeekStart.getMonth() + 1, 0);
@@ -1140,9 +1154,10 @@ els.weekInput.addEventListener("change", event => {
   renderAll();
 });
 els.copyWeek.addEventListener("click", () => copyWeek().catch(error => alert(error.message)));
-els.exportWeekPdf.addEventListener("click", () => window.print());
+els.exportWeekPdf.addEventListener("click", exportWeekPdf);
 window.addEventListener("beforeprint", renderWeekPrint);
-window.addEventListener("afterprint", () => document.querySelector("#weekPrint")?.remove());
+// Keep the print-only section for previews that finish asynchronously.
+// It is hidden on screen and replaced with fresh data on the next print.
 els.exportWeekExcel.addEventListener("click", () => exportWeekExcel().catch(error => alert(error.message)));
 els.exportMonthExcel.addEventListener("click", () => exportMonthExcel().catch(error => alert(error.message)));
 els.employeeForm.addEventListener("submit", event => saveEmployee(event).catch(error => alert(error.message)));
